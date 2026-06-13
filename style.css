@@ -418,11 +418,14 @@ body {
   .player-title { font-size: 12px; }
 
   /* Hide secondary controls on mobile */
-  .controls .ctrl-btns .ctrl-btn:not(.play-btn-wrap) { display: none; }
-  .progress-bar  { display: none; }
+  #shuffleBtn, #repeatBtn { display: none; }
+  .controls .ctrl-btns .ctrl-btn { display: flex; }
+  .progress-bar { display: flex; }
+  .prog-track { height: 4px; }
   .player-right  { display: none; }
   .visualizer    { height: 18px; }
-
+  .source-tabs { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .source-tabs::-webkit-scrollbar { display: none; }
   /* Play button stays big & touchable */
   .play-btn { width: 40px; height: 40px; font-size: 17px; flex-shrink: 0; }
 
