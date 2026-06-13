@@ -473,5 +473,4 @@ body {
 }
 
 .mobile-bottomnav { display: none; }
-
-
+.player.hidden-mobile { display: none; }
