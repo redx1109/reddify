@@ -446,3 +446,25 @@ body {
 
 .song-row .song-actions { opacity: 0; transition: opacity .15s; }
 .song-row:hover .song-actions { opacity: 1; }
+
+.mobile-bottomnav { display: none; }
+
+@media (max-width: 640px) {
+  .mobile-bottomnav {
+    display: flex;
+    background: rgba(255,255,255,0.97);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border-soft);
+    padding: 6px 0 env(safe-area-inset-bottom, 8px);
+    flex-shrink: 0;
+  }
+  .mob-nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 2px; padding: 5px 0;
+    cursor: pointer; font-size: 9.5px; font-weight: 500;
+    color: var(--t3); user-select: none; font-family: var(--font);
+  }
+  .mob-nav-item i { font-size: 20px; }
+  .mob-nav-item.active { color: var(--accent-d); }
+  .mob-nav-item.active i { color: var(--accent); }
+}
