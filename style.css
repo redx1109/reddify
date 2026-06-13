@@ -391,7 +391,24 @@ body {
     box-shadow: none;
     border: none;
   }
-
+  .mobile-bottomnav {
+    display: flex;
+    background: rgba(255,255,255,0.97);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border-soft);
+    padding: 6px 0 env(safe-area-inset-bottom, 8px);
+    flex-shrink: 0;
+  }
+  .mob-nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 2px; padding: 5px 0;
+    cursor: pointer; font-size: 9.5px; font-weight: 500;
+    color: var(--t3); user-select: none; font-family: var(--font);
+  }
+  .mob-nav-item i { font-size: 20px; }
+  .mob-nav-item.active { color: var(--accent-d); }
+  .mob-nav-item.active i { color: var(--accent); }
+  
   /* Topbar: hide source tabs, compact */
   .topbar { padding: 10px 14px; gap: 10px; }
   .source-tabs { display: none; }
@@ -409,17 +426,15 @@ body {
   .song-title { font-size: 13px; }
 
   /* Player: stack into compact bar */
-  .player {
-    padding: 8px 14px;
-    gap: 10px;
-    flex-wrap: nowrap;
-  }
-  .player-info { width: auto; flex: 1; min-width: 0; }
+  .player { flex-direction: column; align-items: stretch; }
+  .player-info { width: 100%; }
   .player-title { font-size: 12px; }
 
   /* Hide secondary controls on mobile */
   #shuffleBtn, #repeatBtn { display: none; }
-  .controls .ctrl-btns .ctrl-btn { display: flex; }
+  .controls { width: 100%; }
+  .ctrl-btns { justify-content: center; }
+  .ctrl-btn { display: flex; }
   .progress-bar { display: flex; }
   .prog-track { height: 4px; }
   .player-right  { display: none; }
@@ -459,26 +474,4 @@ body {
 
 .mobile-bottomnav { display: none; }
 
-@media (max-width: 640px) {
-  .mobile-bottomnav {
-    display: flex;
-    background: rgba(255,255,255,0.97);
-    backdrop-filter: blur(12px);
-    border-top: 1px solid var(--border-soft);
-    padding: 6px 0 env(safe-area-inset-bottom, 8px);
-    flex-shrink: 0;
-  }
-  .mob-nav-item {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; gap: 2px; padding: 5px 0;
-    cursor: pointer; font-size: 9.5px; font-weight: 500;
-    color: var(--t3); user-select: none; font-family: var(--font);
-  }
-  .mob-nav-item i { font-size: 20px; }
-  .mob-nav-item.active { color: var(--accent-d); }
-  .mob-nav-item.active i { color: var(--accent); }
-  .player { flex-direction: column; align-items: stretch; }
-  .player-info { width: 100%; }
-  .controls { width: 100%; }
-  .ctrl-btns { justify-content: center; }
-}
+
