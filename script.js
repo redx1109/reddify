@@ -480,6 +480,11 @@ function savePlaylists(){
   Object.keys(playlists).forEach(k => toSave[k] = [...playlists[k]]);
   localStorage.setItem('redify-playlists', JSON.stringify(toSave));
 }
+
+function setMobNav(el) {
+  document.querySelectorAll('.mob-nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+}
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
   buildViz();
