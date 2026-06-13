@@ -477,4 +477,8 @@ body {
   .mob-nav-item i { font-size: 20px; }
   .mob-nav-item.active { color: var(--accent-d); }
   .mob-nav-item.active i { color: var(--accent); }
+  .player { flex-direction: column; align-items: stretch; }
+  .player-info { width: 100%; }
+  .controls { width: 100%; }
+  .ctrl-btns { justify-content: center; }
 }
