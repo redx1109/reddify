@@ -450,6 +450,13 @@ body {
 .song-row .song-actions { opacity: 0; transition: opacity .15s; }
 .song-row:hover .song-actions { opacity: 1; }
 
+@media (max-width: 640px) {
+  .song-row .song-actions { opacity: 1; }
+  .song-actions .icon-btn:not(:first-child) { display: none; }
+  .badge { display: none; }
+  .song-dur { display: none; }
+}
+
 .mobile-bottomnav { display: none; }
 
 @media (max-width: 640px) {
