@@ -46,12 +46,27 @@
     </div>
   </div>
   <div class="player">
+    
     <div class="player-info">
       <div class="player-art" id="playerArt">🎵</div>
       <div class="player-meta">
         <div class="player-meta">
   <div class="player-title" id="playerTitle">Select a song</div>
   <div class="player-artist" id="playerArtist">—</div>
+  <div class="mobile-bottomnav">
+  <div class="mob-nav-item active" id="mnav-discover" onclick="navTo('discover',document.getElementById('nav-discover'));setMobNav(this)">
+    <i class="ti ti-home"></i><span>Home</span>
+  </div>
+  <div class="mob-nav-item" id="mnav-trending" onclick="navTo('trending',document.getElementById('nav-trending'));setMobNav(this)">
+    <i class="ti ti-trending-up"></i><span>Trending</span>
+  </div>
+  <div class="mob-nav-item" id="mnav-genres" onclick="navTo('genres',document.getElementById('nav-genres'));setMobNav(this)">
+    <i class="ti ti-category"></i><span>Genres</span>
+  </div>
+  <div class="mob-nav-item" id="mnav-favorites" onclick="navTo('favorites',document.getElementById('nav-favorites'));setMobNav(this)">
+    <i class="ti ti-heart"></i><span>Favorites</span>
+  </div>
+</div>        
 </div>
 <div style="display:flex;gap:6px;margin-left:8px">
   <button class="icon-btn" id="playerLikeBtn" onclick="toggleLikeCurrentSong()" title="Favorite"><i class="ti ti-heart" id="playerHeartIcon"></i></button>
