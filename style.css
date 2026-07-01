@@ -104,7 +104,7 @@ body {
   0%,100% { opacity:1; transform:scale(1); box-shadow: 0 0 0 3px rgba(127,119,221,0.2); }
   50%      { opacity:.6; transform:scale(.72); box-shadow: 0 0 0 5px rgba(127,119,221,0.08); }
 }
-
+.mobile-bottomnav { display: none; }
 .search-wrap {
   flex: 1;
   display: flex;
