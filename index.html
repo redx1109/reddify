@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="icon" href="/favicon.png">
-<link rel='manifest' href='/manifest.json'>  
+<link rel="icon" href="favicon.png">
+<link rel='manifest' href='manifest.json'>  
 <title>Redify</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
 <link rel="stylesheet" href="style.css"/>
@@ -18,12 +18,6 @@
       <i class="ti ti-search" style="font-size:15px;color:var(--t3)"></i>
       <input type="text" placeholder="Search songs, artists, genres..." id="searchInput" />
     </div>
-    <div class="source-tabs">
-      <button class="tab active" onclick="filterSource('all',this)">All</button>
-      <button class="tab" onclick="filterSource('jamendo',this)">Jamendo</button>
-      <button class="tab" onclick="filterSource('soundcloud',this)">SoundCloud</button>
-      <button class="tab" onclick="filterSource('fma',this)">FMA</button>
-    </div>
   </div>
   <div class="main">
     <div class="sidebar">
@@ -32,7 +26,7 @@
       <div class="nav-item" id="nav-genres" onclick="navTo('genres',this)"><i class="ti ti-category"></i> Genres</div>
       <div class="nav-item" id="nav-favorites" onclick="navTo('favorites',this)">
         <i class="ti ti-heart"></i> Favorites
-        <span id="favCount" style="margin-left:auto;font-size:10px;background:#EEEDFE;color:#534AB7;padding:1px 7px;border-radius:999px;display:none">0</span>
+        <span id="favCount" style="margin-left:auto;font-size:10px;background:var(--accent-l);color:var(--accent-d);padding:1px 7px;border-radius:999px;display:none">0</span>
       </div>
       <div class="sidebar-label">My Playlists</div>
       <div id="playlistNav"></div>
@@ -96,14 +90,18 @@
     <div class="mob-nav-item" id="mnav-favorites" onclick="navTo('favorites',document.getElementById('nav-favorites'));setMobNav(this)">
       <i class="ti ti-heart"></i><span>Favorites</span>
     </div>
+    <div class="mob-nav-item" id="mnav-playlists" onclick="showMobilePlaylists();setMobNav(this)">
+      <i class="ti ti-playlist"></i><span>Lists</span>
+    </div>
   </div>
 <div class="toast" id="toast"></div>
 <!-- Playlist Modal -->
 <div id="plModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;align-items:center;justify-content:center">
-  <div style="background:var(--bg2,#1a1a2e);border-radius:14px;padding:24px;min-width:280px;max-width:340px;width:90%">
+  <div style="background:var(--bg1);border-radius:14px;padding:24px;min-width:280px;max-width:340px;width:90%">
     <div id="plModalContent"></div>
   </div>
 </div>
+<script src="storage.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
