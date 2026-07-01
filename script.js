@@ -4,13 +4,14 @@ const YT_KEY = 'AIzaSyBFYOKI2mTe7sE9su9FhoWl2ItHuIDz_qg';
 // ── State ─────────────────────────────────────────────────────────────────────
 let songs = [];
 let currentSong = JSON.parse(localStorage.getItem('redify-currentsong') || 'null');
-let liked=new Set(), currentFilter='all', shuffleOn=false, repeatOn=false, isPlaying=false;
+let liked=new Set(JSON.parse(localStorage.getItem('redify-liked')||'[]')), currentFilter='all', shuffleOn=false, repeatOn=false, isPlaying=false;
 let volume=75, muted=false, activeGenre=null, searchQuery='';
 let playlists = JSON.parse(localStorage.getItem('redify-playlists') || '{}');
 // restore Sets (JSON doesn't save Sets)
-Object.keys(playlists).forEach(k => playlists[k] = new Set(playlists[k]));
 let currentPlaylistView=null;
 let ytPlayer=null, ytReady=false, progressInterval=null, searchDebounce=null;
+let vizInterval = null;
+let currentView='discover';
 
 // ── FIXED: cache for YT search results ───────────────────────────────────────
 const _cache = {};
@@ -58,7 +59,7 @@ document.body.appendChild(_ytDiv);
 function onYouTubeIframeAPIReady(){
   ytPlayer=new YT.Player('yt-player',{
     height:'1', width:'1',
-    playerVars:{ autoplay:0, controls:0, rel:0, origin: window.location.origin },
+    playerVars:{ autoplay:0, controls:0, rel:0,},
     events:{
       onReady: ()=>{ ytReady=true; ytPlayer.setVolume(volume); },
       onStateChange: onYTStateChange,
@@ -110,16 +111,19 @@ async function ytSearch(query, maxResults=20){
 
     const ids=items.map(i=>i.id.videoId).join(',');
     const vr=await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${ids}&key=${YT_KEY}`
+      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics,status&id=${ids}&key=${YT_KEY}`
     );
     const vd=await vr.json();
+    
     const durMap={}, viewMap={};
+    const playableSet = new Set();
     (vd.items||[]).forEach(v=>{
       durMap[v.id]=parseISO8601(v.contentDetails.duration);
       viewMap[v.id]=parseInt(v.statistics?.viewCount||'0',10);
+      if(v.status?.embeddable && v.status?.privacyStatus==='public') playableSet.add(v.id);
     });
-
-    const mapped=items.map((item,i)=>({
+    const playableItems = items.filter(i=>playableSet.has(i.id.videoId));
+    const mapped=playableItems.map((item,i)=>({
       id: i+1,
       title: item.snippet.title.replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&quot;/g,'"'),
       artist: item.snippet.channelTitle,
@@ -202,8 +206,8 @@ function renderSongs(list){
   if(!el) return;
   if(!list.length){ el.innerHTML='<div class="empty-state"><i class="ti ti-music-off"></i>No songs found</div>'; return; }
   el.innerHTML=list.map((s,i)=>`
-    <div class="song-row ${currentSong&&currentSong.id===s.id?'playing':''}" onclick="playSong(${s.id})">
-      <div class="song-num">${currentSong&&currentSong.id===s.id?'<i class="ti ti-volume" style="font-size:13px;color:#7F77DD"></i>':(i+1)}</div>
+    <div class="song-row ${currentSong&&currentSong.videoId===s.videoId?'playing':''}" onclick="playSong('${s.id}','${s.videoId}')">
+      <div class="song-num">${currentSong&&currentSong.videoId===s.videoId?'<i class="ti ti-volume" style="font-size:13px;color:#7F77DD"></i>':(i+1)}</div>
       <div class="song-art" style="background:#111;overflow:hidden;padding:0">
         ${s.thumb?`<img src="${s.thumb}" style="width:100%;height:100%;object-fit:cover">`:s.emoji}
       </div>
@@ -211,10 +215,7 @@ function renderSongs(list){
       <span class="badge ${s.badge}">${s.label}</span>
       <span class="song-dur">${s.dur}</span>
       <div class="song-actions">
-        <button class="icon-btn ${liked.has(s.id)?'liked':''}" onclick="event.stopPropagation();toggleLike(${s.id})">
-          <i class="ti ${liked.has(s.id)?'ti-heart-filled':'ti-heart'}"></i>
-        </button>
-        <button class="icon-btn" title="Add to playlist" onclick="event.stopPropagation();openAddToPlaylist(${s.id})">
+        <button class="icon-btn" title="Add to playlist" onclick="event.stopPropagation();openAddToPlaylist('${s.videoId}')">
           <i class="ti ti-playlist-add"></i>
         </button>
         <button class="icon-btn" onclick="event.stopPropagation();window.open('https://youtube.com/watch?v=${s.videoId}','_blank')">
@@ -225,10 +226,15 @@ function renderSongs(list){
 }
 
 // ── Playback ──────────────────────────────────────────────────────────────────
-function playSong(id){
-  const song=songs.find(s=>s.id===id); if(!song) return;
+function playSong(id, videoId){
+  const vid = videoId || id;
+  let song = songs.find(s=>s.videoId===vid)
+    || Object.values(playlists).flat().find(s=>s&&s.videoId===vid)
+    || likedSongs[vid];
+  if(!song) return;
   if(!ytReady||!ytPlayer){ setTimeout(()=>playSong(id),600); return; }
-  currentSong=song;
+  currentSong=song; 
+  document.querySelector('.player').classList.remove('no-song');
   document.getElementById('playerTitle').textContent=song.title;
   document.getElementById('playerArtist').textContent=song.artist;
   const artEl=document.getElementById('playerArt');
@@ -243,11 +249,13 @@ function playSong(id){
   document.getElementById('progEnd').textContent=song.dur;
   ytPlayer.loadVideoById(song.videoId);
   isPlaying=true; updatePlayBtn();
-  renderSongs(getFiltered());
+  if(currentView==='favorites') renderSongs(Object.values(likedSongs));
+  else if(currentView==='playlist' && currentPlaylistView) renderSongs(playlists[currentPlaylistView]||[]);
+  else renderSongs(getFiltered());
   localStorage.setItem('redify-currentsong', JSON.stringify(song));
   const phi = document.getElementById('playerHeartIcon');
-  if(phi) phi.className = liked.has(song.id) ? 'ti ti-heart-filled' : 'ti ti-heart';
-  document.getElementById('playerLikeBtn')?.classList.toggle('liked', liked.has(song.id));
+  if(phi) phi.className = liked.has(song.videoId) ? 'ti ti-heart-filled' : 'ti ti-heart';
+  document.getElementById('playerLikeBtn')?.classList.toggle('liked', liked.has(song.videoId));
 }
 
 function togglePlay(){
@@ -257,18 +265,18 @@ function togglePlay(){
 }
 
 function nextSong(){
-  const list=getFiltered(); if(!list.length) return;
-  if(shuffleOn){ playSong(list[Math.floor(Math.random()*list.length)].id); return; }
-  if(!currentSong){ playSong(list[0].id); return; }
-  const idx=list.findIndex(s=>s.id===currentSong.id);
-  playSong(list[(idx+1)%list.length].id);
+  const list = (currentView==='playlist' && currentPlaylistView) ? (playlists[currentPlaylistView]||[]) : getFiltered(); if(!list.length) return;
+  if(shuffleOn){ playSong(null, list[Math.floor(Math.random()*list.length)].videoId); return; }
+  if(!currentSong){ playSong(null, list[0].videoId); return; }
+  const idx=list.findIndex(s=>s.videoId===currentSong.videoId);
+  playSong(null, list[(idx+1)%list.length].videoId);
 }
 
 function prevSong(){
-  const list=getFiltered(); if(!list.length||!currentSong) return;
-  if(ytPlayer&&ytPlayer.getCurrentTime()>3){ ytPlayer.seekTo(0,true); return; }
-  const idx=list.findIndex(s=>s.id===currentSong.id);
-  playSong(list[(idx-1+list.length)%list.length].id);
+  const list = (currentView==='playlist' && currentPlaylistView) ? (playlists[currentPlaylistView]||[]) : getFiltered(); if(!list.length||!currentSong) return;
+  if(ytReady&&ytPlayer&&typeof ytPlayer.getCurrentTime==='function'&&ytPlayer.getCurrentTime()>3){ ytPlayer.seekTo(0,true); return; }
+  const idx=list.findIndex(s=>s.videoId===currentSong.videoId);
+  playSong(null, list[(idx-1+list.length)%list.length].videoId);
 }
 
 function seekSong(e){
@@ -281,14 +289,6 @@ function seekSong(e){
 
 function toggleShuffle(){ shuffleOn=!shuffleOn; document.getElementById('shuffleBtn').classList.toggle('active',shuffleOn); showToast(shuffleOn?'Shuffle on 🔀':'Shuffle off'); }
 function toggleRepeat(){ repeatOn=!repeatOn; document.getElementById('repeatBtn').classList.toggle('active',repeatOn); showToast(repeatOn?'Repeat on 🔁':'Repeat off'); }
-
-function toggleLike(id){
-  liked.has(id)?liked.delete(id):liked.add(id);
-  const cnt=document.getElementById('favCount');
-  cnt.textContent=liked.size; cnt.style.display=liked.size>0?'inline':'none';
-  renderSongs(getFiltered());
-  showToast(liked.has(id)?'Added to Favorites ❤️':'Removed from Favorites');
-}
 
 function setVolume(e){
   const rect=e.currentTarget.getBoundingClientRect();
@@ -316,23 +316,33 @@ function navTo(view,el){
   el.classList.add('active'); activeGenre=null;
   const content=document.getElementById('songContent');
   if(view==='discover'){
+    currentView='discover';
     content.innerHTML='<div><div class="section-header"><div class="section-title">🔥 Trending Now</div></div><div class="song-list" id="songList"></div></div>';
     renderSongs(getFiltered());
   } else if(view==='trending'){
+    currentView='trending';
     content.innerHTML='<div><div class="section-header"><div class="section-title">📈 Trending This Week</div></div><div class="song-list" id="songList"></div></div>';
     renderSongs([...songs].sort(()=>Math.random()-.5).slice(0,8));
   } else if(view==='genres'){
+    currentView='genres';
     const genres=[...new Set(songs.map(s=>s.genre))];
     content.innerHTML=`<div><div class="section-header"><div class="section-title">🎼 Browse by Genre</div></div><div class="genre-chips">${genres.map(g=>'<button class="genre-chip" onclick="filterGenre(\''+g+'\',this)">'+g+'</button>').join('')}</div></div><div><div class="section-header"><div class="section-title" id="genreTitle">All Songs</div></div><div class="song-list" id="songList"></div></div>`;
     renderSongs(songs);
   } else if(view==='favorites'){
+    currentView='favorites';
     content.innerHTML='<div><div class="section-header"><div class="section-title">❤️ Your Favorites</div></div><div class="song-list" id="songList"></div></div>';
-    const favs=songs.filter(s=>liked.has(s.id));
+    const favs=Object.values(likedSongs);
     if(favs.length) renderSongs(favs);
     else document.getElementById('songList').innerHTML='<div class="empty-state"><i class="ti ti-heart"></i>No favorites yet!</div>';
   }
 }
-
+function toggleLikeCurrentSong(){
+  if(!currentSong) return;
+  toggleLike(currentSong.videoId);
+  const isLiked = liked.has(currentSong.videoId);
+  document.getElementById('playerHeartIcon').className = isLiked ? 'ti ti-heart-filled' : 'ti ti-heart';
+  document.getElementById('playerLikeBtn')?.classList.toggle('liked', isLiked);
+}
 function filterGenre(genre,btn){
   activeGenre=activeGenre===genre?null:genre;
   document.querySelectorAll('.genre-chip').forEach(c=>c.classList.remove('active'));
@@ -346,21 +356,6 @@ function filterSource(src,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   renderSongs(getFiltered());
-}
-
-// ── Playlist Functions ────────────────────────────────────────────────────────
-function renderPlaylists(){
-  const nav=document.getElementById('playlistNav');
-  if(!nav) return;
-  const colors=['#D4537E','#7F77DD','#1D9E75','#E8A838','#5B8DEF','#C45FD4'];
-  const names=Object.keys(playlists);
-  if(!names.length){ nav.innerHTML='<div style="font-size:11px;color:var(--t3);padding:4px 10px">No playlists yet</div>'; return; }
-  nav.innerHTML=names.map((name,i)=>`
-    <div class="playlist-item" onclick="viewPlaylist('${name}')">
-      <div class="pl-dot" style="background:${colors[i%colors.length]}"></div>
-      ${name}
-      <span style="margin-left:auto;font-size:10px;color:var(--t3)">${playlists[name].size}</span>
-    </div>`).join('');
 }
 
 function closePlModal(){
@@ -387,7 +382,7 @@ function confirmCreatePlaylist(){
   const name=document.getElementById('plNameInput')?.value.trim();
   if(!name){ showToast('Enter a name!'); return; }
   if(playlists[name]){ showToast('Playlist already exists!'); return; }
-  playlists[name]=new Set();
+  playlists[name]=[];
   savePlaylists();
   renderPlaylists();
   closePlModal();
@@ -399,12 +394,16 @@ function openAddToPlaylist(songId){
   const m=document.getElementById('plModal');
   document.getElementById('plModalContent').innerHTML=`
     <div style="font-size:15px;font-weight:600;margin-bottom:14px">Add to Playlist</div>
+    <div onclick="toggleLike('${songId}');closePlModal();"
+      style="padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:6px;background:#111;display:flex;align-items:center;gap:10px;font-size:13px">
+      <i class="ti ti-heart" style="color:#e0353f"></i> Add to Favorites
+    </div>
     ${names.length ? names.map(name=>`
-      <div onclick="addToPlaylist('${name}',${songId})"
+      <div onclick="addToPlaylist('${name}','${songId}')"
         style="padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:6px;background:#111;display:flex;align-items:center;gap:10px;font-size:13px"
         onmouseover="this.style.background='#222'" onmouseout="this.style.background='#111'">
         <i class="ti ti-playlist" style="color:#7F77DD"></i> ${name}
-        <span style="margin-left:auto;color:var(--t3);font-size:11px">${playlists[name].size} songs</span>
+        <span style="margin-left:auto;color:var(--t3);font-size:11px">${playlists[name].length} songs</span>
       </div>`).join('')
     : '<div style="color:var(--t3);font-size:13px;margin-bottom:12px">No playlists yet — create one first!</div>'}
     <div style="display:flex;gap:8px;margin-top:10px;justify-content:space-between">
@@ -414,9 +413,18 @@ function openAddToPlaylist(songId){
   m.style.display='flex';
 }
 
-function addToPlaylist(name, songId){
+function addToPlaylist(name, videoId){
   if(!playlists[name]) return;
-  playlists[name].add(songId);
+  if(playlists[name].find(s=>s.videoId===videoId)){ showToast('Already in playlist!'); closePlModal(); return; }
+  const allCached = Object.values(_cache).flat();
+  const allPlSongs = Object.values(playlists).flat();
+  const song = songs.find(s=>s.videoId===videoId)
+    || allCached.find(s=>s&&s.videoId===videoId)
+    || allPlSongs.find(s=>s&&s.videoId===videoId)
+    || likedSongs[videoId]
+    || (currentSong?.videoId===videoId ? {...currentSong} : null);
+  if(!song){ showToast('Song not found!'); closePlModal(); return; }
+  playlists[name].push({...song, id:`pl_${videoId}`});
   savePlaylists();
   renderPlaylists();
   closePlModal();
@@ -424,6 +432,7 @@ function addToPlaylist(name, songId){
 }
 
 function viewPlaylist(name){
+  currentView='playlist'; currentPlaylistView=name;
   const pl=playlists[name]; if(!pl) return;
   const content=document.getElementById('songContent');
   content.innerHTML=`
@@ -436,7 +445,7 @@ function viewPlaylist(name){
       </div>
       <div class="song-list" id="songList"></div>
     </div>`;
-  const plSongs=songs.filter(s=>pl.has(s.id));
+  const plSongs=pl;
   if(plSongs.length) renderSongs(plSongs);
   else document.getElementById('songList').innerHTML='<div class="empty-state"><i class="ti ti-playlist"></i>No songs yet — add some!</div>';
 }
@@ -463,27 +472,32 @@ document.getElementById('searchInput').addEventListener('input', function(){
   }
   searchDebounce=setTimeout(()=>liveSearch(searchQuery),500);
 });
-function toggleLikeCurrentSong(){
-  if(!currentSong) return;
-  toggleLike(currentSong.id);
-  document.getElementById('playerHeartIcon').className = liked.has(currentSong.id) ? 'ti ti-heart-filled' : 'ti ti-heart';
-  document.getElementById('playerLikeBtn').classList.toggle('liked', liked.has(currentSong.id));
-}
 
 function addCurrentToPlaylist(){
   if(!currentSong){ showToast('Select a song first'); return; }
-  openAddToPlaylist(currentSong.id);
+  openAddToPlaylist(currentSong.videoId);
 }
 
 function savePlaylists(){
-  const toSave = {};
-  Object.keys(playlists).forEach(k => toSave[k] = [...playlists[k]]);
-  localStorage.setItem('redify-playlists', JSON.stringify(toSave));
+  localStorage.setItem('redify-playlists', JSON.stringify(playlists));
 }
 
 function setMobNav(el) {
   document.querySelectorAll('.mob-nav-item').forEach(n => n.classList.remove('active'));
   el.classList.add('active');
+}
+
+function showMobilePlaylists(){
+  currentView='discover';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const names=Object.keys(playlists);
+  document.getElementById('songContent').innerHTML=`
+    <div><div class="section-header"><div class="section-title">🎵 My Playlists</div></div>
+    <div id="mobPlList" style="padding:8px 0">${names.length?names.map(n=>`
+      <div class="song-row" onclick="viewPlaylist('${n}')" style="cursor:pointer">
+        <div class="song-info"><div class="song-title">${n}</div><div class="song-artist">${playlists[n].length} songs</div></div>
+      </div>`).join(''):'<div class="empty-state"><i class="ti ti-playlist"></i>No playlists yet</div>'}
+    </div></div>`;
 }
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
@@ -492,6 +506,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderPlaylists();
   updateVol();
   initSongs();
+  if(!currentSong) document.querySelector('.player').classList.add('no-song');
 });
 
 document.getElementById('plModal')?.addEventListener('click', function(e){
