@@ -49,12 +49,11 @@
     <div class="player-title" id="playerTitle">Select a song</div>
     <div class="player-artist" id="playerArtist">—</div>
   </div>
-  <div style="display:flex;gap:6px;margin-left:8px">
-    <button class="icon-btn" id="playerLikeBtn" onclick="toggleLikeCurrentSong()" title="Favorite"><i class="ti ti-heart" id="playerHeartIcon"></i></button>
-    <button class="icon-btn" onclick="addCurrentToPlaylist()" title="Add to playlist"><i class="ti ti-playlist-add"></i></button>
-  </div>
 </div>
     <div class="controls">
+      <div style="display:flex;gap:6px;margin-left:8px">
+        <button class="icon-btn" onclick="addCurrentToPlaylist()" title="Add to playlist"><i class="ti ti-playlist-add"></i></button>
+      </div>
       <div class="ctrl-btns">
         <button class="ctrl-btn" id="shuffleBtn" onclick="toggleShuffle()" title="Shuffle"><i class="ti ti-arrows-shuffle"></i></button>
         <button class="ctrl-btn" onclick="prevSong()" title="Previous"><i class="ti ti-player-skip-back"></i></button>
@@ -72,7 +71,7 @@
       <div class="visualizer" id="visualizer"></div>
       <div class="vol-wrap">
         <i class="ti ti-volume" id="volIcon" style="font-size:15px;color:var(--t2);cursor:pointer" onclick="toggleMute()"></i>
-        <div class="vol-track" onclick="setVolume(event)"><div class="vol-fill" id="volFill"></div></div>
+        <div class="vol-track"><div class="vol-fill" id="volFill"></div></div>
       </div>
       <button class="icon-btn" onclick="downloadCurrent()" title="Download"><i class="ti ti-download"></i></button>
     </div>
