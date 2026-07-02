@@ -80,7 +80,7 @@ body {
 .main { flex: 1; }
 .logo {
   font-family: var(--font-display);
-  font-size: 17px;
+  font-size: 23px;
   font-weight: 700;
   color: var(--accent-d);
   display: flex;
@@ -91,14 +91,19 @@ body {
 }
 
 .logo-dot {
-  width: 7px;
-  height: 7px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 0 3px rgba(127,119,221,0.2);
   animation: pulse 2s ease-in-out infinite;
 }
-.player { width: 100%; }
+.player { width: 100%;
+  margin: 0 12px 12px;
+  border-radius: 16px;
+  border-top: none;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+ }
 .main { width: 100%; }
 @keyframes pulse {
   0%,100% { opacity:1; transform:scale(1); box-shadow: 0 0 0 3px rgba(127,119,221,0.2); }
@@ -354,6 +359,7 @@ body {
 .player-right { display: flex; align-items: center; gap: 10px; width: 180px; justify-content: flex-end; }
 .vol-wrap     { display: flex; align-items: center; gap: 7px; }
 .vol-track    { width: 72px; height: 3px; background: var(--border); border-radius: 2px; cursor: pointer; overflow: hidden; }
+.vol-track.active { height: 6px; transition: height .15s; }
 .vol-fill     { height: 100%; width: 75%; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-d)); pointer-events: none; }
 
 /* ── Genre chips ── */
@@ -392,7 +398,8 @@ body {
 @media (max-width: 640px) {
   body { padding: 0; background: var(--bg2); align-items: flex-start; }
   .topbar { flex-wrap: wrap; justify-content: center; }
-  .logo { width: 100%; justify-content: center; }
+  .logo { width: 100%; justify-content: center; font-size: 26px;}
+  .logo-dot { width: 12px; height: 12px; }
   .search-wrap { order: 3; width: 100%; }
   .app {
     max-width: 100%;
@@ -422,7 +429,6 @@ body {
   /* Topbar: hide source tabs, compact */
   .topbar { padding: 10px 14px; gap: 10px; }
   .source-tabs { display: none; }
-  .logo { font-size: 16px; }
 
   /* Hide sidebar entirely on mobile */
   .sidebar { display: none; }
@@ -436,23 +442,26 @@ body {
   .song-title { font-size: 13px; }
 
   /* Player: stack into compact bar */
-  .player { flex-direction: column; align-items: stretch; }
-  .player-info { width: 100%; }
+  .player { flex-direction: column; align-items: stretch; padding: 6px 20px; gap: 8px;}
+  .player { flex-direction: row !important; align-items: center; }
+  .player-info { width: auto; flex: 1; min-width: 0; order: 1; }
+  .controls { width: auto; flex-shrink: 0; order: 2; margin-left: auto; }
+  .ctrl-btns { display: flex; align-items: center; gap: 8px; }
   .player-title { font-size: 12px; }
-
+  .controls { display: flex; flex-direction: row; align-items: center; gap: 10px; }
   /* Hide secondary controls on mobile */
   #shuffleBtn, #repeatBtn { display: none; }
   .controls { width: 100%; }
-  .ctrl-btns { justify-content: center; }
-  .ctrl-btn { display: flex; }
-  .progress-bar { display: flex; }
+  .controls { display: flex; align-items: center; gap: 10px; }
+  .ctrl-btn { display: flex; font-size: 14px; padding: 3px;}
+  .progress-bar { display: none; }
   .prog-track { height: 4px; }
   .player-right  { display: none; }
   .visualizer    { height: 18px; }
   .source-tabs { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .source-tabs::-webkit-scrollbar { display: none; }
   /* Play button stays big & touchable */
-  .play-btn { width: 40px; height: 40px; font-size: 17px; flex-shrink: 0; }
+  .play-btn { width: 32px; height: 32px; font-size: 14px; flex-shrink: 0; }
 
   /* Genre chips wrap nicely */
   .genre-chips { gap: 5px; }
@@ -464,7 +473,8 @@ body {
   /* Toast higher (above mobile nav / home bar) */
   .toast { bottom: 96px; }
   .player.hidden-mobile { display: none; }
-
+  .player-info { order: 1; }
+  .controls { order: 2; flex: 1; }
 }
 
 /* Mid-range: tablet layout tweak */
@@ -481,7 +491,16 @@ body {
   .badge { display: none; }
   .song-dur { display: none; }
   .player.hidden-mobile { display: none; }
-
 }
-
-
+.player { padding: 10px 24px; gap: 24px; align-items: center; }
+.player-info { gap: 12px; }
+.controls { gap: 8px; }
+.ctrl-btns { gap: 14px; }
+.player-right { gap: 16px; }
+.song-list.carousel { flex-direction: row; overflow-x: auto; gap: 10px; padding-bottom: 6px; }
+.song-list.carousel .song-row { flex-direction: column; width: 120px; align-items: flex-start; }
+.song-list.carousel .song-art { width: 100%; height: 120px; }
+.song-list.carousel .song-actions, .song-list.carousel .song-num, .song-list.carousel .badge, .song-list.carousel .song-dur { display: none; }
+.song-list.carousel .song-title,
+.song-list.carousel .song-artist { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+.song-list.carousel .song-info { width: 100%; min-width: 0; }
