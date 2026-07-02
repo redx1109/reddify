@@ -12,7 +12,8 @@ let currentPlaylistView=null;
 let ytPlayer=null, ytReady=false, progressInterval=null, searchDebounce=null;
 let vizInterval = null;
 let currentView='discover';
-
+let originalSongs = [];
+let favOrder = JSON.parse(localStorage.getItem('redify-favorder')||'[]');
 // ── FIXED: cache for YT search results ───────────────────────────────────────
 const _cache = {};
 
@@ -152,10 +153,11 @@ async function initSongs(){
   showLoading('Loading trending songs… 🎵');
   const CACHE_KEY = 'redify-trending';
   const cached = localStorage.getItem(CACHE_KEY);
-  if(cached){ songs=JSON.parse(cached); renderSongs(getFiltered()); showToast('✅ Loaded from cache'); return; }
+  if(cached && JSON.parse(cached).length){ songs=JSON.parse(cached); originalSongs=[...songs]; renderSongs(getFiltered()); showToast('✅ Loaded from cache'); return; }
   const results=await ytSearch('top music hits 2025',20);
   localStorage.setItem(CACHE_KEY, JSON.stringify(results));
   songs=results;
+  originalSongs = [...songs];
   if(!songs.length){ showLoading('⚠️ Could not load — check API key or quota'); return; }
   renderSongs(getFiltered());
   if(currentSong){
@@ -166,7 +168,11 @@ async function initSongs(){
     document.getElementById('playerTitle').textContent = currentSong.title;
     document.getElementById('playerArtist').textContent = currentSong.artist;
     const artEl = document.getElementById('playerArt');
-    if(currentSong.thumb){ artEl.style.cssText='background-image:url('+currentSong.thumb+');background-size:cover;background-position:center'; artEl.textContent=''; }
+    if(currentSong.thumb){ 
+      artEl.style.cssText='background-image:url('+currentSong.thumb+');background-size:cover;background-position:center'; 
+      artEl.textContent='';
+      if(ytReady&&ytPlayer) ytPlayer.loadVideoById(currentSong.videoId);
+      else setTimeout(()=>ytPlayer?.loadVideoById(currentSong.videoId), 1000); }
       document.getElementById('progEnd').textContent = currentSong.dur;
   }
   showToast(`✅ Loaded ${songs.length} songs`);
@@ -183,6 +189,8 @@ async function liveSearch(query){
     if(el) el.innerHTML=`<div class="empty-state"><i class="ti ti-music-off"></i>No results for "${query}"</div>`;
     return;
   }
+  document.getElementById('songContent').innerHTML =
+    '<div><div class="section-header"><div class="section-title">🔍 Search Results</div></div><div class="song-list" id="songList"></div></div>';
   renderSongs(songs);
   showToast(`🔍 Found ${songs.length} songs`);
 }
@@ -201,12 +209,12 @@ function fmtViews(n){
   return n>0?String(n):'';
 }
 
-function renderSongs(list){
-  const el=document.getElementById('songList');
+function renderSongs(list, targetId='songList'){
+  const el=document.getElementById(targetId);
   if(!el) return;
   if(!list.length){ el.innerHTML='<div class="empty-state"><i class="ti ti-music-off"></i>No songs found</div>'; return; }
   el.innerHTML=list.map((s,i)=>`
-    <div class="song-row ${currentSong&&currentSong.videoId===s.videoId?'playing':''}" onclick="playSong('${s.id}','${s.videoId}')">
+    <div class="song-row ${currentSong&&isPlaying&&currentSong.videoId===s.videoId?'playing':''}" onclick="playSong('${s.id}','${s.videoId}')">
       <div class="song-num">${currentSong&&currentSong.videoId===s.videoId?'<i class="ti ti-volume" style="font-size:13px;color:#7F77DD"></i>':(i+1)}</div>
       <div class="song-art" style="background:#111;overflow:hidden;padding:0">
         ${s.thumb?`<img src="${s.thumb}" style="width:100%;height:100%;object-fit:cover">`:s.emoji}
@@ -234,6 +242,9 @@ function playSong(id, videoId){
   if(!song) return;
   if(!ytReady||!ytPlayer){ setTimeout(()=>playSong(id),600); return; }
   currentSong=song; 
+  let recent = JSON.parse(localStorage.getItem('redify-recent')||'[]');
+  recent = [song, ...recent.filter(s=>s.videoId!==song.videoId)].slice(0,10);
+  localStorage.setItem('redify-recent', JSON.stringify(recent));
   document.querySelector('.player').classList.remove('no-song');
   document.getElementById('playerTitle').textContent=song.title;
   document.getElementById('playerArtist').textContent=song.artist;
@@ -290,13 +301,27 @@ function seekSong(e){
 function toggleShuffle(){ shuffleOn=!shuffleOn; document.getElementById('shuffleBtn').classList.toggle('active',shuffleOn); showToast(shuffleOn?'Shuffle on 🔀':'Shuffle off'); }
 function toggleRepeat(){ repeatOn=!repeatOn; document.getElementById('repeatBtn').classList.toggle('active',repeatOn); showToast(repeatOn?'Repeat on 🔁':'Repeat off'); }
 
+let volDragging=false;
 function setVolume(e){
-  const rect=e.currentTarget.getBoundingClientRect();
-  volume=Math.max(0,Math.min(100,Math.round(((e.clientX-rect.left)/rect.width)*100)));
+  const track=document.querySelector('.vol-track');
+  const rect=track.getBoundingClientRect();
+  const pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+  volume=Math.round(pct*100);
   muted=false;
   if(ytReady&&ytPlayer) ytPlayer.setVolume(volume);
   updateVol();
 }
+document.querySelector('.vol-track').addEventListener('mousedown', e=>{
+  volDragging=true;
+  document.querySelector('.vol-track').classList.add('active');
+  setVolume(e);
+});
+document.addEventListener('mousemove', e=>{ if(volDragging) setVolume(e); });
+document.addEventListener('mouseup', ()=>{
+  volDragging=false;
+  document.querySelector('.vol-track').classList.remove('active');
+});
+
 function toggleMute(){ muted=!muted; if(ytReady&&ytPlayer) ytPlayer.setVolume(muted?0:volume); updateVol(); }
 function updateVol(){
   document.getElementById('volFill').style.width=(muted?0:volume)+'%';
@@ -312,12 +337,22 @@ function downloadCurrent(){
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 function navTo(view,el){
+  if(songs!==originalSongs) songs=[...originalSongs];
+  document.getElementById('searchInput').value=''; searchQuery='';  
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   el.classList.add('active'); activeGenre=null;
   const content=document.getElementById('songContent');
   if(view==='discover'){
     currentView='discover';
-    content.innerHTML='<div><div class="section-header"><div class="section-title">🔥 Trending Now</div></div><div class="song-list" id="songList"></div></div>';
+    const recent = JSON.parse(localStorage.getItem('redify-recent')||'[]');
+    if(!favOrder.length) favOrder=Object.keys(likedSongs);
+    const favs=favOrder.map(id=>likedSongs[id]).filter(Boolean);
+    content.innerHTML = `
+      ${recent.length?`<div><div class="section-header"><div class="section-title">🕓 Recently Played</div></div><div class="song-list carousel" id="songList-recent"></div></div>`:''}
+      ${favs.length?`<div><div class="section-header"><div class="section-title">❤️ Your Favorites</div></div><div class="song-list carousel" id="songList-fav"></div></div>`:''}
+      <div><div class="section-header"><div class="section-title">🔥 Trending Now</div></div><div class="song-list carousel" id="songList"></div></div>`;
+    if(recent.length) renderSongs(recent, 'songList-recent');
+    if(favs.length) renderSongs(favs, 'songList-fav');
     renderSongs(getFiltered());
   } else if(view==='trending'){
     currentView='trending';
@@ -334,6 +369,12 @@ function navTo(view,el){
     const favs=Object.values(likedSongs);
     if(favs.length) renderSongs(favs);
     else document.getElementById('songList').innerHTML='<div class="empty-state"><i class="ti ti-heart"></i>No favorites yet!</div>';
+    document.querySelectorAll('#songList .song-row').forEach((row,i)=>{
+      row.draggable=true;
+      row.ondragstart=()=>dragStart(i);
+      row.ondragover=e=>e.preventDefault();
+      row.ondrop=()=>dropFav(i);
+    });
   }
 }
 function toggleLikeCurrentSong(){
@@ -432,6 +473,7 @@ function addToPlaylist(name, videoId){
 }
 
 function viewPlaylist(name){
+  document.getElementById('searchInput').value=''; searchQuery='';
   currentView='playlist'; currentPlaylistView=name;
   const pl=playlists[name]; if(!pl) return;
   const content=document.getElementById('songContent');
@@ -446,8 +488,14 @@ function viewPlaylist(name){
       <div class="song-list" id="songList"></div>
     </div>`;
   const plSongs=pl;
-  if(plSongs.length) renderSongs(plSongs);
+  if(plSongs.length) renderSongs(plSongs) ;
   else document.getElementById('songList').innerHTML='<div class="empty-state"><i class="ti ti-playlist"></i>No songs yet — add some!</div>';
+  document.querySelectorAll('#songList .song-row').forEach((row,i)=>{
+  row.draggable=true;
+  row.ondragstart=()=>dragStart(i);
+  row.ondragover=e=>e.preventDefault();
+  row.ondrop=()=>dropSong(name,i);
+  });
 }
 
 function deletePlaylist(name){
@@ -488,6 +536,7 @@ function setMobNav(el) {
 }
 
 function showMobilePlaylists(){
+  document.getElementById('searchInput').value=''; searchQuery='';
   currentView='discover';
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   const names=Object.keys(playlists);
@@ -499,14 +548,36 @@ function showMobilePlaylists(){
       </div>`).join(''):'<div class="empty-state"><i class="ti ti-playlist"></i>No playlists yet</div>'}
     </div></div>`;
 }
+
+let dragIdx=null;
+function dragStart(i){ dragIdx=i; }
+function dropSong(name, i){
+  const arr=playlists[name];
+  const [moved]=arr.splice(dragIdx,1);
+  arr.splice(i,0,moved);
+  savePlaylists();
+  viewPlaylist(name);
+}
+
+function dropFav(i){
+  const [moved]=favOrder.splice(dragIdx,1);
+  favOrder.splice(i,0,moved);
+  localStorage.setItem('redify-favorder', JSON.stringify(favOrder));
+  navTo('favorites', document.getElementById('nav-favorites'));
+}
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
   buildViz();
   vizInterval=setInterval(animateViz,140);
   renderPlaylists();
   updateVol();
-  initSongs();
+  initSongs().then(()=>navTo('discover', document.getElementById('nav-discover')));
   if(!currentSong) document.querySelector('.player').classList.add('no-song');
+  document.querySelector('.vol-track').addEventListener('mousedown', e=>{
+  volDragging=true;
+  document.querySelector('.vol-track').classList.add('active');
+  setVolume(e);
+  });
 });
 
 document.getElementById('plModal')?.addEventListener('click', function(e){
