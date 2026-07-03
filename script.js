@@ -5,7 +5,7 @@ const YT_KEY = 'AIzaSyBFYOKI2mTe7sE9su9FhoWl2ItHuIDz_qg';
 let songs = [];
 let currentSong = JSON.parse(localStorage.getItem('redify-currentsong') || 'null');
 let liked=new Set(JSON.parse(localStorage.getItem('redify-liked')||'[]')), currentFilter='all', shuffleOn=false, repeatOn=false, isPlaying=false;
-let volume=75, muted=false, activeGenre=null, searchQuery='';
+let volume=100, muted=false, activeGenre=null, searchQuery='';
 let playlists = JSON.parse(localStorage.getItem('redify-playlists') || '{}');
 // restore Sets (JSON doesn't save Sets)
 let currentPlaylistView=null;
@@ -242,6 +242,7 @@ function playSong(id, videoId){
   if(!song) return;
   if(!ytReady||!ytPlayer){ setTimeout(()=>playSong(id),600); return; }
   currentSong=song; 
+  if(currentView!=='playlist') currentPlaylistView=null;
   let recent = JSON.parse(localStorage.getItem('redify-recent')||'[]');
   recent = [song, ...recent.filter(s=>s.videoId!==song.videoId)].slice(0,10);
   localStorage.setItem('redify-recent', JSON.stringify(recent));
@@ -276,7 +277,7 @@ function togglePlay(){
 }
 
 function nextSong(){
-  const list = (currentView==='playlist' && currentPlaylistView) ? (playlists[currentPlaylistView]||[]) : getFiltered(); if(!list.length) return;
+  const list = (currentView==='playlist' && currentPlaylistView) ? (playlists[currentPlaylistView]||[]) : currentView==='favorites' ? Object.values(likedSongs) : getFiltered();
   if(shuffleOn){ playSong(null, list[Math.floor(Math.random()*list.length)].videoId); return; }
   if(!currentSong){ playSong(null, list[0].videoId); return; }
   const idx=list.findIndex(s=>s.videoId===currentSong.videoId);
@@ -284,7 +285,7 @@ function nextSong(){
 }
 
 function prevSong(){
-  const list = (currentView==='playlist' && currentPlaylistView) ? (playlists[currentPlaylistView]||[]) : getFiltered(); if(!list.length||!currentSong) return;
+  const list = (currentView==='playlist' && currentPlaylistView) ? (playlists[currentPlaylistView]||[]) : currentView==='favorites' ? Object.values(likedSongs) : getFiltered();
   if(ytReady&&ytPlayer&&typeof ytPlayer.getCurrentTime==='function'&&ytPlayer.getCurrentTime()>3){ ytPlayer.seekTo(0,true); return; }
   const idx=list.findIndex(s=>s.videoId===currentSong.videoId);
   playSong(null, list[(idx-1+list.length)%list.length].videoId);
@@ -300,34 +301,6 @@ function seekSong(e){
 
 function toggleShuffle(){ shuffleOn=!shuffleOn; document.getElementById('shuffleBtn').classList.toggle('active',shuffleOn); showToast(shuffleOn?'Shuffle on 🔀':'Shuffle off'); }
 function toggleRepeat(){ repeatOn=!repeatOn; document.getElementById('repeatBtn').classList.toggle('active',repeatOn); showToast(repeatOn?'Repeat on 🔁':'Repeat off'); }
-
-let volDragging=false;
-function setVolume(e){
-  const track=document.querySelector('.vol-track');
-  const rect=track.getBoundingClientRect();
-  const pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
-  volume=Math.round(pct*100);
-  muted=false;
-  if(ytReady&&ytPlayer) ytPlayer.setVolume(volume);
-  updateVol();
-}
-document.querySelector('.vol-track').addEventListener('mousedown', e=>{
-  volDragging=true;
-  document.querySelector('.vol-track').classList.add('active');
-  setVolume(e);
-});
-document.addEventListener('mousemove', e=>{ if(volDragging) setVolume(e); });
-document.addEventListener('mouseup', ()=>{
-  volDragging=false;
-  document.querySelector('.vol-track').classList.remove('active');
-});
-
-function toggleMute(){ muted=!muted; if(ytReady&&ytPlayer) ytPlayer.setVolume(muted?0:volume); updateVol(); }
-function updateVol(){
-  document.getElementById('volFill').style.width=(muted?0:volume)+'%';
-  const ic=document.getElementById('volIcon');
-  ic.className='ti '+(muted||volume===0?'ti-volume-off':volume<50?'ti-volume-2':'ti-volume');
-}
 
 function downloadCurrent(){
   if(!currentSong){ showToast('Select a song first'); return; }
@@ -570,15 +543,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   buildViz();
   vizInterval=setInterval(animateViz,140);
   renderPlaylists();
-  updateVol();
   initSongs().then(()=>navTo('discover', document.getElementById('nav-discover')));
   if(!currentSong) document.querySelector('.player').classList.add('no-song');
-  document.querySelector('.vol-track').addEventListener('mousedown', e=>{
-  volDragging=true;
-  document.querySelector('.vol-track').classList.add('active');
-  setVolume(e);
   });
-});
 
 document.getElementById('plModal')?.addEventListener('click', function(e){
   if(e.target===this) closePlModal();
