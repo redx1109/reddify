@@ -409,11 +409,11 @@ function createPlaylistPrompt(){
   document.getElementById('plModalContent').innerHTML=`
     <div style="font-size:15px;font-weight:600;margin-bottom:14px">New Playlist</div>
     <input id="plNameInput" placeholder="Playlist name..."
-      style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid #333;background:var(--bg2);color:#fff;font-size:13px;box-sizing:border-box"
+      style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:#fff;font-size:13px;box-sizing:border-box"
       onkeydown="if(event.key==='Enter')confirmCreatePlaylist()"/>
     <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
-      <button onclick="closePlModal()" style="padding:7px 16px;border-radius:8px;border:1px solid #444;background:transparent;color:#aaa;cursor:pointer">Cancel</button>
-      <button onclick="confirmCreatePlaylist()" style="padding:7px 16px;border-radius:8px;border:none;background:#7F77DD;color:#fff;cursor:pointer;font-weight:600">Create</button>
+      <button onclick="closePlModal()" style="padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;color:#aaa;cursor:pointer">Cancel</button>
+      <button onclick="confirmCreatePlaylist()" style="padding:7px 16px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-weight:600">Create</button>
     </div>`;
   m.style.display='flex';
   setTimeout(()=>document.getElementById('plNameInput')?.focus(),50);
