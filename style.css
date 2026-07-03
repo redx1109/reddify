@@ -300,6 +300,7 @@ body {
 
 /* ── Player ── */
 .player {
+  height: 100px;
   background: var(--bg1);
   backdrop-filter: blur(14px);
   border-top: 1px solid var(--border-soft);
@@ -311,10 +312,15 @@ body {
   box-shadow: var(--shadow-player);
 }
 
-.player-info    { display: flex; align-items: center; gap: 10px; width: 220px; }
+.player-info { 
+  display: flex;
+  align-items: center;
+  gap: 12px; width: 340px;
+}
+.player-art { transform: translateX(20px); }
 .player-art {
-  width: 44px; height: 44px;
-  border-radius: 11px;
+  width: 70px; height: 70px;
+  border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   background: var(--accent-l);
   font-size: 21px;
@@ -323,10 +329,18 @@ body {
 }
 .player-art.spinning { animation: spin 4.5s linear infinite; }
 .player-meta         { min-width: 0; }
-.player-title  { font-size: 13px; font-weight: 600; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player-title { 
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--t1);
+  white-space: nowrap;
+  overflow: visible; 
+  margin-top: -5vh;
+}
 .player-artist { font-size: 11px; color: var(--t2); margin-top: 1px; }
 
-.controls { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.controls { flex: 1; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.progress-bar { align-self: stretch; }
 .ctrl-btns { display: flex; align-items: center; gap: 8px; }
 .ctrl-btn {
   background: none; border: none; cursor: pointer;
@@ -360,8 +374,13 @@ body {
 .vol-wrap     { display: flex; align-items: center; gap: 7px; }
 .vol-track    { width: 72px; height: 3px; background: var(--border); border-radius: 2px; cursor: pointer; overflow: hidden; }
 .vol-track.active { height: 6px; transition: height .15s; }
-.vol-fill     { height: 100%; width: 75%; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-d)); pointer-events: none; }
+.vol-fill     { height: 100%; width: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-d)); pointer-events: none; }
 
+.player { padding: 10px 24px; gap: 24px; align-items: center; }
+.player-info { gap: 12px; }
+.controls { gap: 8px; }
+.ctrl-btns { gap: 14px; }
+.player-right { gap: 16px; }
 /* ── Genre chips ── */
 .genre-chips  { display: flex; flex-wrap: wrap; gap: 6px; }
 .genre-chip {
@@ -408,6 +427,7 @@ body {
     box-shadow: none;
     border: none;
   }
+  .app { padding-top: env(safe-area-inset-top, 0); }
   .mobile-bottomnav {
     display: flex;
     background: var(--bg2);
@@ -442,12 +462,15 @@ body {
   .song-title { font-size: 13px; }
 
   /* Player: stack into compact bar */
-  .player { flex-direction: column; align-items: stretch; padding: 6px 20px; gap: 8px;}
+  .player-art { margin-left: -30px;}
+  .player {padding: 6px 20px; gap: 8px;}
   .player { flex-direction: row !important; align-items: center; }
   .player-info { width: auto; flex: 1; min-width: 0; order: 1; }
   .controls { width: auto; flex-shrink: 0; order: 2; margin-left: auto; }
   .ctrl-btns { display: flex; align-items: center; gap: 8px; }
-  .player-title { font-size: 12px; }
+  .player-title { font-size: 12px; padding-bottom: 30px; }
+  .player-title { margin-top: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .player-meta { display: flex; flex-direction: column; justify-content: center; margin-top: -3px; }
   .controls { display: flex; flex-direction: row; align-items: center; gap: 10px; }
   /* Hide secondary controls on mobile */
   #shuffleBtn, #repeatBtn { display: none; }
@@ -457,7 +480,7 @@ body {
   .progress-bar { display: none; }
   .prog-track { height: 4px; }
   .player-right  { display: none; }
-  .visualizer    { height: 18px; }
+  .visualizer    { height: 18px; padding-top: 30px;  }
   .source-tabs { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .source-tabs::-webkit-scrollbar { display: none; }
   /* Play button stays big & touchable */
@@ -492,11 +515,7 @@ body {
   .song-dur { display: none; }
   .player.hidden-mobile { display: none; }
 }
-.player { padding: 10px 24px; gap: 24px; align-items: center; }
-.player-info { gap: 12px; }
-.controls { gap: 8px; }
-.ctrl-btns { gap: 14px; }
-.player-right { gap: 16px; }
+
 .song-list.carousel { flex-direction: row; overflow-x: auto; gap: 10px; padding-bottom: 6px; }
 .song-list.carousel .song-row { flex-direction: column; width: 120px; align-items: flex-start; }
 .song-list.carousel .song-art { width: 100%; height: 120px; }
