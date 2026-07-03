@@ -409,7 +409,7 @@ function createPlaylistPrompt(){
   document.getElementById('plModalContent').innerHTML=`
     <div style="font-size:15px;font-weight:600;margin-bottom:14px">New Playlist</div>
     <input id="plNameInput" placeholder="Playlist name..."
-      style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid #333;background:#111;color:var(--bg2);font-size:13px;box-sizing:border-box"
+      style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid #333;background:var(--bg2);color:#fff;font-size:13px;box-sizing:border-box"
       onkeydown="if(event.key==='Enter')confirmCreatePlaylist()"/>
     <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
       <button onclick="closePlModal()" style="padding:7px 16px;border-radius:8px;border:1px solid #444;background:transparent;color:#aaa;cursor:pointer">Cancel</button>
