@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="google-site-verification" content="Xcy_X2z73e1Khm-4lgwmyLaYKD_7-I_Qe9j8XIIlpR0" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="icon" href="favicon.png">
 <link rel='manifest' href='manifest.json'>  
@@ -46,16 +45,18 @@
     
 <div class="player-info">
   <div class="player-art" id="playerArt">🎵</div>
+  <div style="display:flex;gap:6px;margin-left:10px">
+    <button class="icon-btn" onclick="addCurrentToPlaylist()" title="Add to playlist"><i class="ti ti-playlist-add"></i></button>
+  </div>
   <div class="player-meta">
     <div class="player-title" id="playerTitle">Select a song</div>
     <div class="player-artist" id="playerArtist">—</div>
   </div>
 </div>
+    
     <div class="controls">
-      <div style="display:flex;gap:6px;margin-left:8px">
-        <button class="icon-btn" onclick="addCurrentToPlaylist()" title="Add to playlist"><i class="ti ti-playlist-add"></i></button>
-      </div>
-      <div class="ctrl-btns">
+      <div class="ctrl-btns"> 
+        <div class="visualizer" id="visualizer"></div>
         <button class="ctrl-btn" id="shuffleBtn" onclick="toggleShuffle()" title="Shuffle"><i class="ti ti-arrows-shuffle"></i></button>
         <button class="ctrl-btn" onclick="prevSong()" title="Previous"><i class="ti ti-player-skip-back"></i></button>
         <button class="play-btn" onclick="togglePlay()"><i class="ti ti-player-play" id="playIcon"></i></button>
@@ -69,12 +70,6 @@
       </div>
     </div>
     <div class="player-right">
-      <div class="visualizer" id="visualizer"></div>
-      <div class="vol-wrap">
-        <i class="ti ti-volume" id="volIcon" style="font-size:15px;color:var(--t2);cursor:pointer" onclick="toggleMute()"></i>
-        <div class="vol-track"><div class="vol-fill" id="volFill"></div></div>
-      </div>
-      <button class="icon-btn" onclick="downloadCurrent()" title="Download"><i class="ti ti-download"></i></button>
     </div>
 </div>
 <div class="mobile-bottomnav">
