@@ -436,12 +436,12 @@ function openAddToPlaylist(songId){
   document.getElementById('plModalContent').innerHTML=`
     <div style="font-size:15px;font-weight:600;margin-bottom:14px">Add to Playlist</div>
     <div onclick="toggleLike('${songId}');closePlModal();"
-      style="padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:6px;background:#111;display:flex;align-items:center;gap:10px;font-size:13px">
+      style="padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:6px;background:var(--accent-d);display:flex;align-items:center;gap:10px;font-size:13px">
       <i class="ti ti-heart" style="color:#e0353f"></i> Add to Favorites
     </div>
     ${names.length ? names.map(name=>`
       <div onclick="addToPlaylist('${name}','${songId}')"
-        style="padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:6px;background:#111;display:flex;align-items:center;gap:10px;font-size:13px"
+        style="padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:6px;background:var(--bg2);display:flex;align-items:center;gap:10px;font-size:13px"
         onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='var(--accent-d)'">
         <i class="ti ti-playlist" style="color:#7F77DD"></i> ${name}
         <span style="margin-left:auto;color:var(--t3);font-size:11px">${playlists[name].length} songs</span>
