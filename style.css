@@ -2,20 +2,20 @@
 
 :root {
   /* Palette */
-  --bg1: #ffffff;
-  --bg2: #f5f4fb;
-  --bg3: #ede9f9;
-  --border: #e4e0f4;
-  --border-soft: rgba(127,119,221,0.12);
+  --bg1: #000000;
+  --bg2: #191720;
+  --bg3: #211f2e;
+  --border: #322f45;
+  --border-soft: rgba(127,119,221,0.18);
 
-  --t1: #18173a;
-  --t2: #5b587e;
-  --t3: #a09dc4;
+  --t1: #f5f3ff;
+  --t2: #9d99c2;
+  --t3: #5c5980;
 
   --accent: #7F77DD;
-  --accent-l: #eeedfe;
+  --accent-l: rgba(127,119,221,0.18);
+  --accent-glow: rgba(127,119,221,0.35);
   --accent-d: #534AB7;
-  --accent-glow: rgba(127,119,221,0.22);
 
   --rose: #e8768a;
   --rose-l: #fdeef1;
@@ -36,7 +36,6 @@
   --shadow-md: 0 4px 20px rgba(83,74,183,0.1), 0 1px 4px rgba(0,0,0,0.04);
   --shadow-lg: 0 20px 60px rgba(83,74,183,0.15), 0 4px 16px rgba(0,0,0,0.06);
   --shadow-player: 0 -1px 0 var(--border), 0 -8px 24px rgba(83,74,183,0.06);
-
 }
 
 html, body { height: 100%; }
@@ -187,7 +186,7 @@ body {
   padding: 8px 10px;
   border-radius: var(--r-md);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 400;
   color: var(--t2);
   transition: all .15s;
@@ -205,7 +204,7 @@ body {
   padding: 6px 10px;
   border-radius: var(--r-md);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--t2);
   transition: background .15s;
 }
