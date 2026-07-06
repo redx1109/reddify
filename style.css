@@ -445,7 +445,7 @@ body {
     color: white; user-select: none; font-family: var(--font);
   }
   .mob-nav-item i { font-size: 20px; color: white; }
-  .mob-nav-item.active { color: white; background-color: #534AB7; border-radius: 999px; }
+  .mob-nav-item.active { color: white; background-color: #534AB7; border-radius: 999px; position: fixed; }
   .mob-nav-item.active i { color: white; }
   
   /* Topbar: hide source tabs, compact */
