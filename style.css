@@ -515,8 +515,7 @@ body {
   .player { gap: 12px; }
   .player-meta { overflow: visible; margin-left: -20px; }
   .player-artist { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; order: 2; }
-  .player-art { width: 64px; height: 64px; order: 0; font-size: 24px; }
-  .player-info { flex-direction: row; align-items: flex-start;}
+  .player-art { width: 64px; height: 64px; order: 0; font-size: 24px; margin-right: -10px; }
 }
 /* Mid-range: tablet layout tweak */
 @media (max-width: 860px) and (min-width: 641px) {
