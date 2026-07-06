@@ -502,9 +502,9 @@ body {
   .controls { order: 2; flex: 1; margin-bottom: -30px; }
 
   .icon-btn { display: none; }
-  .player-title { padding-bottom: 0; min-width: 0; flex: 1; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; order: 1; }
+  .player-title { padding-bottom: 0; min-width: 0; flex: 1; width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; order: 1; }
   .player { gap: 12px; }
-  .player-meta { overflow: visible; }
+  .player-meta { overflow: visible; margin-left: -20px; }
   .player-artist { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; order: 2; }
   .player-art { width: 64px; height: 64px; order: 0; font-size: 24px; }
   .player-info { flex-direction: row; align-items: flex-start;}
