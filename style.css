@@ -316,7 +316,7 @@ body {
   align-items: center;
   gap: 12px; width: 340px;
 }
-.player-art { transform: translateX(20px); }
+.player-art { transform: none; }
 .player-art {
   width: 70px; height: 70px;
   border-radius: 12px;
@@ -434,16 +434,19 @@ body {
     border-top: 1px solid var(--border-soft);
     padding: 6px 0 env(safe-area-inset-bottom, 8px);
     flex-shrink: 0;
+    border-radius: 999px;
+    padding-bottom: 9px;
+    margin-bottom: 15px;
   }
   .mob-nav-item {
     flex: 1; display: flex; flex-direction: column;
     align-items: center; gap: 2px; padding: 5px 0;
     cursor: pointer; font-size: 9.5px; font-weight: 500;
-    color: var(--t3); user-select: none; font-family: var(--font);
+    color: white; user-select: none; font-family: var(--font);
   }
-  .mob-nav-item i { font-size: 20px; }
-  .mob-nav-item.active { color: var(--accent-d); }
-  .mob-nav-item.active i { color: var(--accent); }
+  .mob-nav-item i { font-size: 20px; color: white; }
+  .mob-nav-item.active { color: white; background-color: #534AB7; border-radius: 999px; }
+  .mob-nav-item.active i { color: white; }
   
   /* Topbar: hide source tabs, compact */
   .topbar { padding: 10px 14px; gap: 10px; }
@@ -461,15 +464,15 @@ body {
   .song-title { font-size: 13px; }
 
   /* Player: stack into compact bar */
-  .player-art { margin-left: -30px;}
-  .player {padding: 6px 20px; gap: 8px;}
-  .player { flex-direction: row !important; align-items: center; }
+  .player-art { margin-left: 0;  width: 44px; height: 44px; font-size: 16px;}
+  .player {padding: 6px 20px; gap: 8px; height: auto; min-height: 100px;}
+  .player { flex-direction: row !important; align-items: center; margin-left: 1px; }
   .player-info { width: auto; flex: 1; min-width: 0; order: 1; }
-  .controls { width: auto; flex-shrink: 0; order: 2; margin-left: auto; }
+  .controls { width: auto; flex-shrink: 0; order: 2; margin-left: auto; padding-bottom: -60px; }
   .ctrl-btns { display: flex; align-items: center; gap: 8px; }
-  .player-title { font-size: 12px; padding-bottom: 30px; }
-  .player-title { margin-top: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-  .player-meta { display: flex; flex-direction: column; justify-content: center; margin-top: -3px; }
+  .player-title { font-size: 12px;}
+  .player-title { margin-top: 0; margin-left: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .player-meta { display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; overflow: hidden; }
   .controls { display: flex; flex-direction: row; align-items: center; gap: 10px; }
   /* Hide secondary controls on mobile */
   #shuffleBtn, #repeatBtn { display: none; }
@@ -479,7 +482,7 @@ body {
   .progress-bar { display: none; }
   .prog-track { height: 4px; }
   .player-right  { display: none; }
-  .visualizer    { height: 18px; padding-top: 30px;  }
+  .visualizer    { height: 18px;}
   .source-tabs { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .source-tabs::-webkit-scrollbar { display: none; }
   /* Play button stays big & touchable */
@@ -496,14 +499,22 @@ body {
   .toast { bottom: 96px; }
   .player.hidden-mobile { display: none; }
   .player-info { order: 1; }
-  .controls { order: 2; flex: 1; }
+  .controls { order: 2; flex: 1; margin-bottom: -30px; }
+
+  .icon-btn { display: none; }
+  .player-title { padding-bottom: 0; min-width: 0; flex: 1; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; order: 1; }
+  .player { gap: 12px; }
+  .player-meta { overflow: visible; }
+  .player-artist { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; order: 2; }
+  .player-art { width: 64px; height: 64px; order: 0; font-size: 24px; }
+  .player-info { flex-direction: row; align-items: flex-start;}
 }
 
 /* Mid-range: tablet layout tweak */
 @media (max-width: 860px) and (min-width: 641px) {
   .sidebar { width: 160px; }
   .player-right { width: 140px; }
-  .player-info  { width: 180px; }
+  .player-info  { width: auto; }
   .player.hidden-mobile { display: none; }
 }
 
