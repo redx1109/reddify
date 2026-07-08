@@ -45,6 +45,10 @@ html, body { height: 100%; }
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+#toast {
+  color: #fff;
+  background: #534AB7;
+}
 /* ── Body ── */
 body {
   padding: 0;
