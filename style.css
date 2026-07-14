@@ -522,7 +522,7 @@ body {
 
   /* Player: stack into compact bar */
   .player-art { margin-left: 0;  width: 44px; height: 44px; font-size: 16px; border-radius: 50%;}
-  .player {padding: 6px 20px; gap: 8px; height: auto; min-height: 100px;}
+  .player {padding: 6px 20px; gap: 8px; height: auto; min-height: 100px; width: 80%;}
   .player { flex-direction: row !important; align-items: center; margin-left: 1px; }
   .player-info { width: auto; flex: 1; min-width: 0; order: 1; }
   .controls { width: auto; flex-shrink: 0; order: 2; margin-left: auto; padding-bottom: -60px; }
