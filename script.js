@@ -5,7 +5,7 @@ const YT_KEY = 'AIzaSyBFYOKI2mTe7sE9su9FhoWl2ItHuIDz_qg';
 let songs = [];
 let currentSong = JSON.parse(localStorage.getItem('redify-currentsong') || 'null');
 let liked=new Set(JSON.parse(localStorage.getItem('redify-liked')||'[]')), currentFilter='all', shuffleOn=false, repeatOn=false, isPlaying=false;
-let volume=100, muted=false, activeGenre=null, searchQuery='';
+let volume=100, activeGenre=null, searchQuery='';
 let playlists = JSON.parse(localStorage.getItem('redify-playlists') || '{}');
 // restore Sets (JSON doesn't save Sets)
 let currentPlaylistView=null;
@@ -40,7 +40,10 @@ function showLoading(msg){
   }
   if(el) el.innerHTML=`<div class="empty-state"><i class="ti ti-loader"></i> ${msg}</div>`;
 }
-
+function setVolume(v){
+  volume = v;
+  ytPlayer.setVolume(100);
+}
 // ── Visualizer ────────────────────────────────────────────────────────────────
 function buildViz(){ const v=document.getElementById('visualizer'); v.innerHTML=''; for(let i=0;i<12;i++){ const b=document.createElement('div'); b.className='viz-bar'; b.style.height='4px'; v.appendChild(b); } }
 function animateViz(){ document.querySelectorAll('.viz-bar').forEach(b=>{ b.style.height=(isPlaying?Math.floor(Math.random()*20)+4:4)+'px'; }); }
@@ -62,9 +65,9 @@ function onYouTubeIframeAPIReady(){
     height:'1', width:'1',
     playerVars:{ autoplay:0, controls:0, rel:0,},
     events:{
-      onReady: ()=>{ ytReady=true; ytPlayer.setVolume(volume); },
+      onReady: ()=>{ ytReady=true; ytPlayer.setVolume(100); },
       onStateChange: onYTStateChange,
-      onError: ()=>{ showToast('⚠️ Skipping unplayable song…'); isPlaying=false; updatePlayBtn(); setTimeout(()=>nextSong(), 1000); }
+      onError: ()=>{ showToast(' Skipping unplayable song…'); isPlaying=false; updatePlayBtn(); setTimeout(()=>nextSong(), 1000); }
     }
   });
 }
@@ -214,7 +217,7 @@ function renderSongs(list, targetId='songList'){
   if(!el) return;
   if(!list.length){ el.innerHTML='<div class="empty-state"><i class="ti ti-music-off"></i>No songs found</div>'; return; }
   el.innerHTML=list.map((s,i)=>`
-    <div class="song-row ${currentSong&&isPlaying&&currentSong.videoId===s.videoId?'playing':''}" onclick="playSong('${s.id}','${s.videoId}')">
+    <div class="song-row ${currentSong&&isPlaying&&currentSong.videoId===s.videoId?'playing':''}" data-vid="${s.videoId}" onclick="playSong('${s.id}','${s.videoId}')">
       <div class="song-num">${currentSong&&currentSong.videoId===s.videoId?'<i class="ti ti-volume" style="font-size:13px;color:#7F77DD"></i>':(i+1)}</div>
       <div class="song-art" style="background:#111;overflow:hidden;padding:0">
         ${s.thumb?`<img src="${s.thumb}" style="width:100%;height:100%;object-fit:cover">`:s.emoji}
@@ -260,6 +263,7 @@ function playSong(id, videoId){
   document.getElementById('progCur').textContent='0:00';
   document.getElementById('progEnd').textContent=song.dur;
   ytPlayer.loadVideoById(song.videoId);
+  ytPlayer.setVolume(100);
   isPlaying=true; updatePlayBtn();
   if(currentView==='favorites') renderSongs(Object.values(likedSongs));
   else if(currentView==='playlist' && currentPlaylistView) renderSongs(playlists[currentPlaylistView]||[]);
@@ -348,6 +352,7 @@ function navTo(view,el){
       row.ondragover=e=>e.preventDefault();
       row.ondrop=()=>dropFav(i);
     });
+    enableTouchReorder(document.getElementById('songList'), ()=>favOrder, ()=>localStorage.setItem('redify-favorder', JSON.stringify(favOrder)));
   }
 }
 function toggleLikeCurrentSong(){
@@ -417,7 +422,7 @@ function openAddToPlaylist(songId){
         style="padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:6px;background:var(--bg2);display:flex;align-items:center;gap:10px;font-size:13px"
         onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='var(--accent-d)'">
         <i class="ti ti-playlist" style="color:#7F77DD"></i> ${name}
-        <span style="margin-left:auto;color:var(--t3);font-size:11px">${playlists[name].length} songs</span>
+        <span style="margin-left:auto;color:var(--t3);font-size:15px">${playlists[name].length} songs</span>
       </div>`).join('')
     : '<div style="color:var(--t3);font-size:13px;margin-bottom:12px">No playlists yet — create one first!</div>'}
     <div style="display:flex;gap:8px;margin-top:10px;justify-content:space-between">
@@ -469,6 +474,7 @@ function viewPlaylist(name){
   row.ondragover=e=>e.preventDefault();
   row.ondrop=()=>dropSong(name,i);
   });
+  enableTouchReorder(document.getElementById('songList'), ()=>playlists[name], savePlaylists);
 }
 
 function deletePlaylist(name){
@@ -537,6 +543,44 @@ function dropFav(i){
   favOrder.splice(i,0,moved);
   localStorage.setItem('redify-favorder', JSON.stringify(favOrder));
   navTo('favorites', document.getElementById('nav-favorites'));
+}
+
+function enableTouchReorder(container, getArr, onSave){
+  container.querySelectorAll('.song-row').forEach(row=>{
+    let holdTimer=null, dragging=false, startY=0;
+    row.addEventListener('touchstart', e=>{
+      holdTimer=setTimeout(()=>{
+        dragging=true; startY=e.touches[0].clientY;
+        row.style.zIndex=100; row.style.background='var(--bg2)'; row.style.position='relative';
+        document.querySelector('.content').style.overflowY='hidden';
+      },300);
+    },{passive:true});
+    row.addEventListener('touchmove', e=>{
+      if(!dragging) return;
+      e.preventDefault();
+      const y=e.touches[0].clientY;
+      row.style.transform=`translateY(${y-startY}px)`;
+      const over=document.elementFromPoint(e.touches[0].clientX,y)?.closest('.song-row');
+      if(over && over!==row && container.contains(over)){
+        const rows=[...container.children];
+        container.insertBefore(row, rows.indexOf(over)>rows.indexOf(row)?over.nextSibling:over);
+      }
+    },{passive:false});
+    const end=()=>{
+      clearTimeout(holdTimer);
+      row.style.touchAction='';
+      if(!dragging){ return; }
+      dragging=false;
+      row.style.transform=''; row.style.zIndex=''; row.style.background=''; row.style.touchAction='';
+      const ids=[...container.children].map(r=>r.getAttribute('data-vid'));
+      document.querySelector('.content').style.overflowY='';
+      const arr=getArr();
+      arr.sort((a,b)=>ids.indexOf(a.videoId)-ids.indexOf(b.videoId));
+      onSave();
+    };
+    row.addEventListener('touchend', end);
+    row.addEventListener('touchcancel', end);
+  });
 }
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
