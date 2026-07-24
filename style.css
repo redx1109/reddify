@@ -287,7 +287,7 @@ body {
   perspective: 600px;
 }
 .song-row:hover {
-  transform: perspective(600px) rotateY(-2deg) translateZ(8px) scale(1.02);
+  transform: perspective(600px) scale(1.02);
 }
 
 .song-row.playing {
