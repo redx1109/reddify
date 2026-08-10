@@ -1,2 +1,2 @@
 // ── API Config ────────────────────────────────────────────────────────────────
-const YT_KEY = 'AIzaSyBFYOKI2mTe7sE9su9FhoWl2ItHuIDz_qg';
+export default async function handler(req, res) { const { q, maxResults = 20 } = req.query; const key = process.env.YT_KEY; const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&type=video&videoCategoryId=10&videoEmbeddable=true&videoSyndicated=true&maxResults=${maxResults}&key=${key}`; const r = await fetch(url); const data = await r.json(); res.status(200).json(data); }
