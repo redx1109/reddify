@@ -1,16 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="google-adsense-account" content="ca-pub-1887567551135148">
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="keywords" content="songs,Redify,Reddify">
-<meta name="description" content="Redify is song website where you can listen songs for free">
-<link rel="icon" href="favicon.png">
-<link rel='manifest' href='manifest.json'>  
-<title>Redify</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
-<link rel="stylesheet" href="style.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Redify — free online music streaming. Discover trending songs, browse genres, build playlists and favorites, all in your browser." />
+  <meta name="keywords" content="free music streaming, online music player, listen music free, playlists, redify" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="canonical" href="https://reddify.vercel.app/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Redify – Free Music Streaming" />
+  <meta property="og:description" content="Discover trending songs, genres, and build your own playlists — free, no signup." />
+  <meta property="og:image" content="https://reddify.vercel.app/favicon.png" />
+  <meta property="og:url" content="https://reddify.vercel.app/" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Redify – Free Music Streaming" />
+  <meta name="twitter:description" content="Trending songs, genres & playlists, free in your browser." />
+  <meta name="twitter:image" content="https://reddify.vercel.app/favicon.png" />
+
+  <link rel="icon" href="favicon.png">
+  <link rel='manifest' href='manifest.json'>  
+  <title>Redify</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
 <div class="app">
@@ -46,9 +60,7 @@
 <div class="player">
   <div class="player-info">
     <div class="player-art" id="playerArt">🎵</div>
-    <div style="display:flex;gap:6px;margin-left:10px">
-      <button class="icon-btn" onclick="addCurrentToPlaylist()" title="Add to playlist"><i class="ti ti-playlist-add"></i></button>
-    </div>
+    
     <div class="player-meta">
       <div class="player-title" id="playerTitle"></div>   
       <div class="player-artist" id="playerArtist">—</div>
@@ -56,6 +68,9 @@
   </div>
     <div class="controls">
       <div class="ctrl-btns"> 
+        <div style="display:flex;gap:6px;margin-left:10px">
+          <button class="icon-btn" onclick="addCurrentToPlaylist()" title="Add to playlist"><i class="ti ti-playlist-add"></i></button>
+        </div>
         <div class="visualizer" id="visualizer"></div>
         <button class="ctrl-btn" id="shuffleBtn" onclick="toggleShuffle()" title="Shuffle"><i class="ti ti-arrows-shuffle"></i></button>
         <button class="ctrl-btn" onclick="prevSong()" title="Previous"><i class="ti ti-player-skip-back"></i></button>
@@ -88,7 +103,7 @@
     <div class="mob-nav-item" id="mnav-playlists" onclick="showMobilePlaylists();setMobNav(this)">
       <i class="ti ti-playlist"></i><span>Lists</span>
     </div>
-  </div>
+</div>
 <div class="toast" id="toast"></div>
 <!-- Playlist Modal -->
 <div id="plModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;align-items:center;justify-content:center">
@@ -98,5 +113,10 @@
 </div>
 <script src="storage.js"></script>
 <script src="script.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
 </body>
 </html>
