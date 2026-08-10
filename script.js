@@ -102,19 +102,18 @@ async function ytSearch(query, maxResults=20){
   if(lsCached) return JSON.parse(lsCached);
   if(_cache[query]) return _cache[query];
   try {
-    const sr=await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}`+
-      `&type=video&videoCategoryId=10&videoEmbeddable=true&videoSyndicated=true&maxResults=${maxResults}&key=${YT_KEY}`
-    );
+  // NEW
+  const sr=await fetch(
+    `/api/search?q=${encodeURIComponent(query)}&maxResults=${maxResults}`
+  );
     const sd=await sr.json();
     if(sd.error) throw new Error(sd.error.message);
     const items=(sd.items||[]).filter(i=>i.id?.videoId);
     if(!items.length) return [];
 
     const ids=items.map(i=>i.id.videoId).join(',');
-    const vr=await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics,status&id=${ids}&key=${YT_KEY}`
-    );
+    // NEW
+    const vr=await fetch(`/api/ytvideos?id=${ids}`);
     const vd=await vr.json();
     
     const durMap={}, viewMap={};
