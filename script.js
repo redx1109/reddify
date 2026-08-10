@@ -1,5 +1,3 @@
-// ── API Config ────────────────────────────────────────────────────────────────
-const YT_KEY = 'AIzaSyBFYOKI2mTe7sE9su9FhoWl2ItHuIDz_qg';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let songs = [];
@@ -548,7 +546,9 @@ function dropFav(i){
 function enableTouchReorder(container, getArr, onSave){
   container.querySelectorAll('.song-row').forEach(row=>{
     let holdTimer=null, dragging=false, startY=0;
+    let touchStartX=0, touchStartY=0;
     row.addEventListener('touchstart', e=>{
+      touchStartX=e.touches[0].clientX; touchStartY=e.touches[0].clientY;
       holdTimer=setTimeout(()=>{
         dragging=true; startY=e.touches[0].clientY;
         row.style.zIndex=100; row.style.background='var(--bg2)'; row.style.position='relative';
@@ -556,7 +556,11 @@ function enableTouchReorder(container, getArr, onSave){
       },300);
     },{passive:true});
     row.addEventListener('touchmove', e=>{
-      if(!dragging) return;
+      if(!dragging){
+        const dx=Math.abs(e.touches[0].clientX-touchStartX), dy=Math.abs(e.touches[0].clientY-touchStartY);
+        if(dx>10||dy>10) clearTimeout(holdTimer);
+        return;
+      }
       e.preventDefault();
       const y=e.touches[0].clientY;
       row.style.transform=`translateY(${y-startY}px)`;
