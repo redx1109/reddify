@@ -466,6 +466,8 @@ body {
 .empty-state { padding: 36px; text-align: center; color: var(--t3); font-size: 13px;}
 .empty-state i { font-size: 30px; display: block; margin-bottom: 10px;}
 
+
+.song-row{ -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
 /* ═══════════════════════════════════════════════
    MOBILE RESPONSIVE  —  ≤ 640 px
    ═══════════════════════════════════════════════ */
