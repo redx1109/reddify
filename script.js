@@ -1,4 +1,3 @@
-
 // ── State ─────────────────────────────────────────────────────────────────────
 let songs = [];
 let currentSong = JSON.parse(localStorage.getItem('redify-currentsong') || 'null');
@@ -15,6 +14,11 @@ let favOrder = JSON.parse(localStorage.getItem('redify-favorder')||'[]');
 // ── FIXED: cache for YT search results ───────────────────────────────────────
 const _cache = {};
 
+function getFavs(){
+  favOrder = favOrder.filter(id=>likedSongs[id]);
+  Object.keys(likedSongs).forEach(id=>{ if(!favOrder.includes(id)) favOrder.push(id); });
+  return favOrder.map(id=>likedSongs[id]);
+}
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmt(s){ const m=Math.floor(s/60),x=Math.floor(s%60); return m+':'+(x<10?'0':'')+x; }
 function fmtSec(s){ s=Math.floor(+s||0); return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60); }
@@ -235,6 +239,7 @@ function renderSongs(list, targetId='songList'){
 
 // ── Playback ──────────────────────────────────────────────────────────────────
 function playSong(id, videoId){
+  if(window._justDragged) return;
   const vid = videoId || id;
   let song = songs.find(s=>s.videoId===vid)
     || Object.values(playlists).flat().find(s=>s&&s.videoId===vid)
@@ -262,7 +267,7 @@ function playSong(id, videoId){
   ytPlayer.loadVideoById(song.videoId);
   ytPlayer.setVolume(100);
   isPlaying=true; updatePlayBtn();
-  if(currentView==='favorites') renderSongs(Object.values(likedSongs));
+  if(currentView==='favorites') renderSongs(getFavs());
   else if(currentView==='playlist' && currentPlaylistView) renderSongs(playlists[currentPlaylistView]||[]);
   else renderSongs(getFiltered());
   localStorage.setItem('redify-currentsong', JSON.stringify(song));
@@ -278,7 +283,7 @@ function togglePlay(){
 }
 
 function nextSong(){
-  const list = (currentView==='playlist' && currentPlaylistView) ? (playlists[currentPlaylistView]||[]) : currentView==='favorites' ? Object.values(likedSongs) : getFiltered();
+  const list = (currentView==='playlist' && currentPlaylistView) ? (playlists[currentPlaylistView]||[]) : currentView==='favorites' ? getFavs() : getFiltered();
   if(shuffleOn){ playSong(null, list[Math.floor(Math.random()*list.length)].videoId); return; }
   if(!currentSong){ playSong(null, list[0].videoId); return; }
   const idx=list.findIndex(s=>s.videoId===currentSong.videoId);
@@ -286,7 +291,7 @@ function nextSong(){
 }
 
 function prevSong(){
-  const list = (currentView==='playlist' && currentPlaylistView) ? (playlists[currentPlaylistView]||[]) : currentView==='favorites' ? Object.values(likedSongs) : getFiltered();
+  const list = (currentView==='playlist' && currentPlaylistView) ? (playlists[currentPlaylistView]||[]) : currentView==='favorites' ? getFavs() : getFiltered();
   if(ytReady&&ytPlayer&&typeof ytPlayer.getCurrentTime==='function'&&ytPlayer.getCurrentTime()>3){ ytPlayer.seekTo(0,true); return; }
   const idx=list.findIndex(s=>s.videoId===currentSong.videoId);
   playSong(null, list[(idx-1+list.length)%list.length].videoId);
@@ -319,8 +324,7 @@ function navTo(view,el){
   if(view==='discover'){
     currentView='discover';
     const recent = JSON.parse(localStorage.getItem('redify-recent')||'[]');
-    if(!favOrder.length) favOrder=Object.keys(likedSongs);
-    const favs=favOrder.map(id=>likedSongs[id]).filter(Boolean);
+    const favs=getFavs();
     content.innerHTML = `
       ${recent.length?`<div><div class="section-header"><div class="section-title">🕓 Recently Played</div></div><div class="song-list carousel" id="songList-recent"></div></div>`:''}
       ${favs.length?`<div><div class="section-header"><div class="section-title">❤️ Your Favorites</div></div><div class="song-list carousel" id="songList-fav"></div></div>`:''}
@@ -578,7 +582,11 @@ function enableTouchReorder(container, getArr, onSave){
       const ids=[...container.children].map(r=>r.getAttribute('data-vid'));
       document.querySelector('.content').style.overflowY='';
       const arr=getArr();
-      arr.sort((a,b)=>ids.indexOf(a.videoId)-ids.indexOf(b.videoId));
+      arr.sort((a,b)=>{
+        const x=typeof a==='string'?a:a.videoId, y=typeof b==='string'?b:b.videoId;
+        return ids.indexOf(x)-ids.indexOf(y);
+      });
+      window._justDragged=true; setTimeout(()=>window._justDragged=false,400);
       onSave();
     };
     row.addEventListener('touchend', end);
